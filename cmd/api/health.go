@@ -7,4 +7,5 @@ func (app *application) healthCheckHandler(
 	r *http.Request,
 ) {
 	w.Write([]byte("Ok"))
+
 }
