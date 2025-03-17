@@ -18,11 +18,11 @@ func main() {
 	cfg := config{
 		addr: env.GetString("ADDR", ":8080"),
 		db: dbConfig{
-			addr: env.GetString("DATABASE_URL", "postgresql://admin:admin@localhost/go-social?sslmode=disable"),
+			addr: env.GetString("DATABASE_URL", "postgresql://admin:admin@localhost/gosocial?sslmode=disable"),
 			// limit number of open connection to the db from our API connection pool
 			maxOpenConns: env.GetInt("DB_MAX_OPEN_CONNS", 30),
 			maxIdleConns: env.GetInt("DB_MAX_IDLE_CONNS", 30),
-			maxIdleTime:  env.GetString("DB_MAX_IDLE_TIME", "15min"),
+			maxIdleTime:  env.GetString("DB_MAX_IDLE_TIME", "15m"),
 		},
 	}
 
@@ -30,6 +30,8 @@ func main() {
 	if err != nil {
 		log.Panic(err.Error())
 	}
+	defer db.Close()
+	log.Println("Database connection pool established.")
 
 	store := store.NewStorage(db)
 	app := &application{

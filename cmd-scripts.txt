@@ -1,0 +1,5 @@
+-> create migration sql files:
+    - migrate create -seq -ext sql -dir ./cmd/migrate/migrations create_users
+
+-> create migrations
+    - migrate -path=./cmd/migrate/migrations -database="postgresql://postgres:admin@localhost/gosocial?sslmode=disable" up
