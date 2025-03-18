@@ -5,8 +5,25 @@ import (
 	"net/http"
 )
 
-func (app *application) internalServerError(w http.ResponseWriter, r *http.Request, err error) {
-	log.Printf("INTERNAL SERVER ERROR OCCURED: %s path: %s error: %s", r.Method, r.URL.Path, err.Error())
-	writeJSONError(w, http.StatusInternalServerError, "The server encountered a problem while procession your request.")
+const (
+	ColorRed   = "\033[31m"
+	ColorReset = "\033[0m"
+)
 
+func (app *application) internalServerError(w http.ResponseWriter, r *http.Request, err error) {
+	log.Printf("%sINTERNAL_SERVER_ERROR_OCCURED: %s path: %s error: %s%s",
+		ColorRed, r.Method, r.URL.Path, err.Error(), ColorReset)
+	writeJSONError(w, http.StatusInternalServerError, "The server encountered a problem while procession your request.")
+}
+
+func (app *application) badRequestError(w http.ResponseWriter, r *http.Request, err error) {
+	log.Printf("%sBAD_REQUEST_ERROR: %s path: %s error: %s%s",
+		ColorRed, r.Method, r.URL.Path, err.Error(), ColorReset)
+	writeJSONError(w, http.StatusInternalServerError, err.Error())
+}
+
+func (app *application) notFoundError(w http.ResponseWriter, r *http.Request, err error) {
+	log.Printf("%sNOT_FOUND_ERROR: %s path: %s error: %s%s",
+		ColorRed, r.Method, r.URL.Path, err.Error(), ColorReset)
+	writeJSONError(w, http.StatusInternalServerError, "Resource not found.")
 }
