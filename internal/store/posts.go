@@ -67,3 +67,42 @@ func (s *PostStore) GetById(ctx context.Context, postId int64) (*Post, error) {
 
 	return &post, nil
 }
+
+// func (s *PostStore) Update(ctx context.Context, postId int64)  (*Post,error) {
+// 	query := `
+// 		UPDATE posts SET title = 'My Very 1st post' WHERE posts.id = 1;
+// 	`
+
+// 	var post *Post
+// 	err := s.db.QueryRowContext(ctx, query,
+// 		post.Content,
+// 		post.Title,
+// 		post.UserID,
+// 		pq.Array(post.Tags),
+// 	).Scan(&post.ID, &post.CreatedAt, &post.UpdatedAt)
+
+// 	if err != nil {
+// 		return nil,err
+// 	}
+// 	return post,err
+
+// }
+
+func (s *PostStore) Delete(ctx context.Context, postId int64) error {
+	query := `
+		DELETE FROM posts where id = $1;
+	`
+
+	res, err := s.db.ExecContext(ctx, query, postId)
+	if err != nil {
+		return err
+	}
+
+	rows, err := res.RowsAffected()
+
+	if rows == 0 {
+		return ErrorNotFound
+	}
+
+	return nil
+}

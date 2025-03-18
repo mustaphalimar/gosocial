@@ -15,23 +15,28 @@ type CreatePostPayload struct {
 	Tags    []string `json:"tags"`
 }
 
-func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
-	var postPatyload CreatePostPayload
+type UpdatePostPayload struct {
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
 
-	if err := readJSON(w, r, &postPatyload); err != nil {
+func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
+	var postPayload CreatePostPayload
+
+	if err := readJSON(w, r, &postPayload); err != nil {
 		app.badRequestError(w, r, err)
 		return
 	}
 
-	if err := Validate.Struct(postPatyload); err != nil {
+	if err := Validate.Struct(postPayload); err != nil {
 		app.badRequestError(w, r, err)
 		return
 	}
 
 	post := &store.Post{
-		Title:   postPatyload.Title,
-		Content: postPatyload.Content,
-		Tags:    postPatyload.Tags,
+		Title:   postPayload.Title,
+		Content: postPayload.Content,
+		Tags:    postPayload.Tags,
 		UserID:  1, // TODO change after auth
 	}
 
@@ -77,4 +82,62 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	if err := writeJSON(w, http.StatusOK, post); err != nil {
 		app.internalServerError(w, r, err)
 	}
+}
+
+// func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
+// 	idParam := chi.URLParam(r, "postId")
+// 	postId, err := strconv.ParseInt(idParam, 10, 64)
+// 	if err != nil {
+// 		app.badRequestError(w, r, err)
+// 		return
+// 	}
+// 	ctx := r.Context()
+
+// 	var postPayload UpdatePostPayload
+
+// 	if err := readJSON(w, r, &postPayload); err != nil {
+// 			app.badRequestError(w, r, err)
+// 			return
+// 		}
+
+// 		if err := Validate.Struct(postPayload); err != nil {
+// 			app.badRequestError(w, r, err)
+// 			return
+// 		}
+
+// 		post := &store.Post{
+// 				Title:   postPayload.Title,
+// 				Content: postPayload.Content,
+// 				UserID:  1, // TODO change after auth
+// 			}
+
+// 			if err := app.store.Posts.Update(ctx, post); err != nil {
+// 				app.internalServerError(w, r, err)
+// 			}
+
+// 			if err := writeJSON(w, http.StatusCreated, post); err != nil {
+// 				app.internalServerError(w, r, err)
+// 			}
+// }
+
+func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "postId")
+	postId, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		app.badRequestError(w, r, err)
+		return
+	}
+	ctx := r.Context()
+
+	if err := app.store.Posts.Delete(ctx, postId); err != nil {
+		switch {
+		case errors.Is(err, store.ErrorNotFound):
+			app.notFoundError(w, r, err)
+		default:
+			app.internalServerError(w, r, err)
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
