@@ -96,7 +96,9 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 
 	err := app.store.Posts.Update(r.Context(), post)
 	if err != nil {
+
 		app.internalServerError(w, r, err)
+		return
 	}
 
 	if err = app.jsonResponse(w, http.StatusOK, post); err != nil {
