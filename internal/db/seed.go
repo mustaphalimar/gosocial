@@ -120,7 +120,7 @@ func Seed(store store.Storage) {
 		}
 	}
 
-	log.Println("✅ Db seeded successfully.")
+	log.Println("✅ Db seeded successfully. 💯")
 	return
 }
 
