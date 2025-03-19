@@ -18,11 +18,6 @@ type CreatePostPayload struct {
 	Tags    []string `json:"tags"`
 }
 
-type UpdatePostPayload struct {
-	Title   string `json:"title"`
-	Content string `json:"content"`
-}
-
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
 	var postPayload CreatePostPayload
 
@@ -72,10 +67,39 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type UpdatePostPayload struct {
+	Title   string `json:"title" validate:"omitempty,max=100"`
+	Content string `json:"content" validate:"omitempty,max=1000"`
+}
+
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
 
-	if err := writeJSON(w, http.StatusOK, post); err != nil {
+	var payload UpdatePostPayload
+	if err := readJSON(w, r, &payload); err != nil {
+		app.badRequestError(w, r, err)
+		return
+	}
+
+	if err := Validate.Struct(payload); err != nil {
+		app.badRequestError(w, r, err)
+		return
+	}
+
+	if payload.Content != "" {
+		post.Content = payload.Content
+	}
+
+	if payload.Title != "" {
+		post.Title = payload.Title
+	}
+
+	err := app.store.Posts.Update(r.Context(), post)
+	if err != nil {
+		app.internalServerError(w, r, err)
+	}
+
+	if err = writeJSON(w, http.StatusOK, post); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}
