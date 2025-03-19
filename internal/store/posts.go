@@ -18,6 +18,7 @@ type Post struct {
 	UpdatedAt string    `json:"updated_at"`
 	Comments  []Comment `json:"comments"`
 	User      User      `json:"user"`
+	Version   int       `json:"version"`
 }
 
 type PostStore struct {
