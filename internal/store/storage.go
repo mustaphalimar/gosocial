@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 )
 
 type Storage struct {
@@ -23,7 +24,8 @@ type Storage struct {
 }
 
 var (
-	ErrorNotFound = errors.New("Record not found.")
+	ErrorNotFound        = errors.New("Record not found.")
+	QueryTimeoutDuration = time.Second * 5
 )
 
 func NewStorage(db *sql.DB) Storage {
