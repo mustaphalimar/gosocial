@@ -25,5 +25,5 @@ func (app *application) badRequestError(w http.ResponseWriter, r *http.Request, 
 func (app *application) notFoundError(w http.ResponseWriter, r *http.Request, err error) {
 	log.Printf("%sNOT_FOUND_ERROR: %s path: %s error: %s%s",
 		ColorRed, r.Method, r.URL.Path, err.Error(), ColorReset)
-	writeJSONError(w, http.StatusInternalServerError, "Resource not found.")
+	writeJSONError(w, http.StatusNotFound, "Resource not found.")
 }
