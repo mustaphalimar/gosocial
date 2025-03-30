@@ -22,7 +22,7 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, store.ErrorNotFound):
-			app.notFou ndError(w, r, err)
+			app.notFoundError(w, r, err)
 			return
 		default:
 			app.internalServerError(w, r, err)
