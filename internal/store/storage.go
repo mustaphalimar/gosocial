@@ -18,10 +18,13 @@ type Storage struct {
 		GetById(context.Context, int64) (*User, error)
 		Create(context.Context, *User) error
 	}
-
 	Comments interface {
 		Create(context.Context, *Comment) error
 		GetByPostId(context.Context, int64) ([]Comment, error)
+	}
+	Followers interface {
+		Follow(ctx context.Context, userToFollow int64, followingUser int64) error
+		Unfollow(ctx context.Context, userToUnfollow int64, unfollowingUser int64) error
 	}
 }
 
