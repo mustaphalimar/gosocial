@@ -31,12 +31,14 @@ type Storage struct {
 var (
 	ErrorNotFound        = errors.New("Record not found.")
 	QueryTimeoutDuration = time.Second * 5
+	ErrConflict          = errors.New("Resource already exists")
 )
 
 func NewStorage(db *sql.DB) Storage {
 	return Storage{
-		Posts:    &PostStore{db},
-		Users:    &UserStore{db},
-		Comments: &CommentStore{db},
+		Posts:     &PostStore{db},
+		Users:     &UserStore{db},
+		Comments:  &CommentStore{db},
+		Followers: &FollowerStore{db},
 	}
 }

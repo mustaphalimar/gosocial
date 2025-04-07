@@ -23,6 +23,7 @@ func readJSON(w http.ResponseWriter, r *http.Request, data any) error {
 	// Setting the maximum size of the json recieved in the request
 	maxBytes := 1_048_578 // 1MB
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
+
 	//
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields() // as its name suggest

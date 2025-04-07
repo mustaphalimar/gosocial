@@ -3,6 +3,8 @@ package store
 import (
 	"context"
 	"database/sql"
+
+	"github.com/lib/pq"
 )
 
 type Follower struct {
@@ -22,8 +24,13 @@ func (s *FollowerStore) Follow(ctx context.Context, userToFollow int64, followin
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 	_, err := s.db.ExecContext(ctx, query, userToFollow, followingUser)
-	return err
+	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+		return ErrConflict
+	}
+
+	return nil
 }
+
 func (s *FollowerStore) Unfollow(ctx context.Context, userToUnfollow int64, unfollowingUser int64) error {
 	query := `
 		DELETE FROM followers WHERE user_id=$1 AND follower_id=$2

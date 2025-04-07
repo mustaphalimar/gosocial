@@ -27,31 +27,42 @@ type FollowUser struct {
 }
 
 func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
+	// extracting the user from the params, /users/{userId}/follow
 	userToFollow := getUserFromContext(r)
 
-	// TODO: reverts back to auth userId from ctx when jwt auth is implemented
+	// TODO: reverts back to userId from ctx when jwt auth is implemented
 	var payload FollowUser
-	if err := readJSON(w, r, payload); err != nil {
+	if err := readJSON(w, r, &payload); err != nil {
 		app.badRequestError(w, r, err)
+		return
 	}
 	ctx := r.Context()
 
 	if err := app.store.Followers.Follow(ctx, userToFollow.ID, payload.UserId); err != nil {
-		app.internalServerError(w, r, err)
-		return
+		switch err {
+		case store.ErrConflict:
+			app.conflictError(w, r, err)
+			return
+		default:
+			app.internalServerError(w, r, err)
+			return
+
+		}
 	}
 
 	if err := app.jsonResponse(w, http.StatusNoContent, nil); err != nil {
 		app.internalServerError(w, r, err)
+		return
 	}
 }
 
 func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Request) {
+	// extracting the user from the params, /users/{userId}/follow
 	userToUnfollow := getUserFromContext(r)
 
 	// TODO: reverts back to auth userId from ctx when jwt auth is implemented
 	var payload FollowUser
-	if err := readJSON(w, r, payload); err != nil {
+	if err := readJSON(w, r, &payload); err != nil {
 		app.badRequestError(w, r, err)
 	}
 	ctx := r.Context()
@@ -91,6 +102,7 @@ func (app *application) userContextMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// extracting the user from the params, /users/{userId}/follow
 func getUserFromContext(r *http.Request) *store.User {
 	user, _ := r.Context().Value(userCtx).(*store.User)
 	return user
