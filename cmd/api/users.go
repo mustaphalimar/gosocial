@@ -46,7 +46,6 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 		default:
 			app.internalServerError(w, r, err)
 			return
-
 		}
 	}
 
