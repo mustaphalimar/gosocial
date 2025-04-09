@@ -21,6 +21,11 @@ type Post struct {
 	Version   int       `json:"version"`
 }
 
+type FeedPost struct {
+	Post
+	CommentsCount int `json:"comments_count"`
+}
+
 type PostStore struct {
 	db *sql.DB
 }
@@ -115,4 +120,49 @@ func (s *PostStore) Delete(ctx context.Context, postId int64) error {
 	}
 
 	return nil
+}
+
+func (s *PostStore) GetUserFeed(ctx context.Context, userId int64) ([]FeedPost, error) {
+	query := `
+	select p.id,p.user_id,p.title,p.content,p.created_at,p.version,p.tags,u.username, count(c.id) as comments_count
+	from posts p
+	LEFT JOIN comments c ON c.post_id = p.id
+	LEFT JOIN  users u ON p.user_id = u.id
+	JOIN followers f ON f.follower_id = p.user_id or p.user_id = $1
+	where f.user_id = $1 or p.user_id = $1
+	group by p.id, u.id
+	order by p.created_at desc;
+	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	rows, err := s.db.QueryContext(ctx, query, userId)
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	var feedPosts []FeedPost
+	for rows.Next() {
+		var p FeedPost
+		err := rows.Scan(
+			&p.ID,
+			&p.UserID,
+			&p.Title,
+			&p.Content,
+			&p.CreatedAt,
+			&p.Version,
+			pq.Array(&p.Tags),
+			&p.User.Username,
+			&p.CommentsCount,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+		feedPosts = append(feedPosts, p)
+	}
+
+	return feedPosts, nil
 }

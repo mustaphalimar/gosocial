@@ -67,14 +67,18 @@ func (app *application) mount() http.Handler {
 				r.Put("/follow", app.followUserHandler)
 				r.Put("/unfollow", app.unfollowUserHandler)
 			})
+
+			r.Group(func(r chi.Router) {
+				r.Get("/feed", app.getUserFeedHandler)
+			})
 		})
+
 	})
 
 	return r
 }
 
 func (app *application) run(mux http.Handler) error {
-
 	srv := &http.Server{
 		Addr:         app.config.addr,
 		Handler:      mux,

@@ -13,6 +13,7 @@ type Storage struct {
 		GetById(context.Context, int64) (*Post, error)
 		Update(context.Context, *Post) error
 		Delete(context.Context, int64) error
+		GetUserFeed(context.Context, int64) ([]FeedPost, error)
 	}
 	Users interface {
 		GetById(context.Context, int64) (*User, error)
