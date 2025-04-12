@@ -122,27 +122,28 @@ func (s *PostStore) Delete(ctx context.Context, postId int64) error {
 	return nil
 }
 
-func (s *PostStore) GetUserFeed(ctx context.Context, userId int64) ([]FeedPost, error) {
+func (s *PostStore) GetUserFeed(ctx context.Context, userId int64, fq PaginatedFeedQuery) ([]FeedPost, error) {
 	query := `
-	select p.id,p.user_id,p.title,p.content,p.created_at,p.version,p.tags,u.username, count(c.id) as comments_count
-	from posts p
-	LEFT JOIN comments c ON c.post_id = p.id
-	LEFT JOIN  users u ON p.user_id = u.id
-	JOIN followers f ON f.follower_id = p.user_id or p.user_id = $1
-	where f.user_id = $1 or p.user_id = $1
-	group by p.id, u.id
-	order by p.created_at desc;
-	`
+    select p.id,p.user_id,p.title,p.content,p.created_at,p.version,p.tags,u.username, count(c.id) as comments_count
+    from posts p
+    LEFT JOIN comments c ON c.post_id = p.id
+    LEFT JOIN users u ON p.user_id = u.id
+    JOIN followers f ON f.follower_id = p.user_id or p.user_id = $1
+    where f.user_id = $1 or p.user_id = $1
+    group by p.id, u.id
+    order by p.created_at ` + fq.Sort + `
+    limit $2 offset $3
+    `
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, userId)
-	defer rows.Close()
+	rows, err := s.db.QueryContext(ctx, query, userId, fq.Limit, fq.Offset)
 	if err != nil {
 		return nil, err
 	}
 
+	defer rows.Close()
 	var feedPosts []FeedPost
 	for rows.Next() {
 		var p FeedPost
@@ -162,6 +163,11 @@ func (s *PostStore) GetUserFeed(ctx context.Context, userId int64) ([]FeedPost, 
 			return nil, err
 		}
 		feedPosts = append(feedPosts, p)
+	}
+
+	// Check for errors from iterating over rows
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return feedPosts, nil
