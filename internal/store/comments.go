@@ -18,6 +18,11 @@ type CommentStore struct {
 	db *sql.DB
 }
 
+func (c *CommentStore) DeleteAll(ctx context.Context) error {
+	_, err := c.db.ExecContext(ctx, "TRUNCATE TABLE comments RESTART IDENTITY CASCADE")
+	return err
+}
+
 func (c *CommentStore) GetByPostId(ctx context.Context, postId int64) ([]Comment, error) {
 	query := `
 		SELECT c.id,c.post_id,c.user_id,content,c.created_at,users.username,users.id  FROM comments c JOIN users ON users.id = c.user_id WHERE c.post_id = $1 ORDER BY c.created_at DESC;

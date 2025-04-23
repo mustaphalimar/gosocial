@@ -17,6 +17,10 @@ type UserStore struct {
 	db *sql.DB
 }
 
+func (s *UserStore) DeleteAll(ctx context.Context) error {
+	_, err := s.db.ExecContext(ctx, "TRUNCATE TABLE users RESTART IDENTITY CASCADE")
+	return err
+}
 func (s *UserStore) Create(ctx context.Context, user *User) error {
 	query := `
 		INSERT INTO users(username,email,password)

@@ -30,6 +30,11 @@ type PostStore struct {
 	db *sql.DB
 }
 
+func (s *PostStore) DeleteAll(ctx context.Context) error {
+	_, err := s.db.ExecContext(ctx, "TRUNCATE TABLE posts RESTART IDENTITY CASCADE")
+	return err
+}
+
 func (s *PostStore) Create(ctx context.Context, post *Post) error {
 	query := `
 	INSERT INTO posts(content,title,user_id,tags)
@@ -124,15 +129,15 @@ func (s *PostStore) Delete(ctx context.Context, postId int64) error {
 
 func (s *PostStore) GetUserFeed(ctx context.Context, userId int64, fq PaginatedFeedQuery) ([]FeedPost, error) {
 	query := `
-    select p.id,p.user_id,p.title,p.content,p.created_at,p.version,p.tags,u.username, count(c.id) as comments_count
-    from posts p
-    LEFT JOIN comments c ON c.post_id = p.id
-    LEFT JOIN users u ON p.user_id = u.id
-    JOIN followers f ON f.follower_id = p.user_id or p.user_id = $1
-    where f.user_id = $1 or p.user_id = $1
-    group by p.id, u.id
-    order by p.created_at ` + fq.Sort + `
-    limit $2 offset $3
+		    select p.id,p.user_id,p.title,p.content,p.created_at,p.version,p.tags,u.username, count(c.id) as comments_count
+		    from posts p
+		    LEFT JOIN comments c ON c.post_id = p.id
+		    LEFT JOIN users u ON p.user_id = u.id
+		    JOIN followers f ON f.follower_id = p.user_id or p.user_id = $1
+		    where f.user_id = $1 or p.user_id = $1
+		    group by p.id, u.id
+		    order by p.created_at ` + fq.Sort + `
+		    limit $2 offset $3
     `
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)

@@ -14,14 +14,17 @@ type Storage struct {
 		Update(context.Context, *Post) error
 		Delete(context.Context, int64) error
 		GetUserFeed(context.Context, int64, PaginatedFeedQuery) ([]FeedPost, error)
+		DeleteAll(context.Context) error
 	}
 	Users interface {
 		GetById(context.Context, int64) (*User, error)
 		Create(context.Context, *User) error
+		DeleteAll(context.Context) error
 	}
 	Comments interface {
 		Create(context.Context, *Comment) error
 		GetByPostId(context.Context, int64) ([]Comment, error)
+		DeleteAll(context.Context) error
 	}
 	Followers interface {
 		Follow(ctx context.Context, userToFollow int64, followingUser int64) error

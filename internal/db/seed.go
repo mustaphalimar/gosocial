@@ -15,6 +15,10 @@ var names []string = []string{
 	"lucas", "abigail", "matthew", "ella", "samuel", "avery", "christopher", "scarlett", "jack", "grace",
 	"andrew", "chloe", "ethan", "lily", "ryan", "nora", "joshua", "hannah", "nathan", "zoe",
 	"caleb", "madison", "sebastian", "layla", "elijah", "victoria", "gabriel", "penelope", "dylan", "aria",
+	"leo", "samantha", "julian", "hazel", "isaac", "ellie", "mason", "aurora", "logan", "stella",
+	"jackson", "paisley", "aiden", "savannah", "carter", "brooklyn", "wyatt", "bella", "owen", "claire",
+	"peter", "lucy", "noah", "zoey", "mila", "caroline", "adam", "ruby", "max", "ivy",
+	"juliet", "simon", "elise", "arthur", "faith", "riley", "sienna", "miles", "luna", "oliver",
 }
 
 var titles []string = []string{
@@ -38,6 +42,16 @@ var titles []string = []string{
 	"The Role of AI in Modern Healthcare",
 	"Why Reading is Essential for Growth",
 	"How to Stay Motivated Every Day",
+	"How to Meditate for Beginners",
+	"Budget-Friendly Meal Prep Ideas",
+	"Essential Skills for Remote Work",
+	"How to Start a Podcast",
+	"Gardening Tips for Small Spaces",
+	"How to Improve Your Memory",
+	"Traveling Safely in 2025",
+	"Building Emotional Intelligence",
+	"How to Write Engaging Content",
+	"Tips for Sustainable Living",
 }
 
 var contents []string = []string{
@@ -61,6 +75,16 @@ var contents []string = []string{
 	"How AI is revolutionizing healthcare and medical treatments.",
 	"Unlock the benefits of daily reading for personal growth.",
 	"Practical techniques to stay motivated and achieve your goals.",
+	"Learn the basics of meditation and how to get started today.",
+	"Delicious and affordable meal prep ideas for busy people.",
+	"Key skills you need to thrive while working remotely.",
+	"Everything you need to know to launch your own podcast.",
+	"Grow your own food with these small-space gardening tips.",
+	"Proven methods to boost your memory and recall.",
+	"Stay safe while traveling with these up-to-date tips.",
+	"Develop your emotional intelligence for better relationships.",
+	"Write content that captures attention and drives engagement.",
+	"Easy ways to live a more sustainable and eco-friendly life.",
 }
 
 var tags []string = []string{
@@ -68,6 +92,8 @@ var tags []string = []string{
 	"public-speaking", "programming", "startup", "sleep", "creativity",
 	"positive-thinking", "cooking", "investing", "social-media", "books",
 	"relationships", "time-management", "healthcare", "reading", "motivation",
+	"meditation", "meal-prep", "remote-work", "podcasting", "gardening",
+	"memory", "safety", "emotional-intelligence", "writing", "sustainability",
 }
 
 var comments []string = []string{
@@ -91,9 +117,38 @@ var comments []string = []string{
 	"AI is a game changer for healthcare.",
 	"Reading daily makes a difference.",
 	"Staying motivated is hard.",
+	"Just what I needed to read today.",
+	"These meal prep ideas are awesome!",
+	"Remote work can be tough, thanks for the advice.",
+	"Starting a podcast has been on my mind.",
+	"Small-space gardening is so rewarding.",
+	"Memory tips are super useful.",
+	"Travel safety is more important than ever.",
+	"Emotional intelligence is underrated.",
+	"Writing engaging content is a challenge.",
+	"Sustainability tips are always welcome.",
+}
+
+// ... your imports and existing code ...
+
+// Add more data to your arrays as shown above
+
+func EraseAll(store store.Storage) {
+	ctx := context.Background()
+	if err := store.Comments.DeleteAll(ctx); err != nil {
+		log.Println("Error deleting comments:", err)
+	}
+	if err := store.Posts.DeleteAll(ctx); err != nil {
+		log.Println("Error deleting posts:", err)
+	}
+	if err := store.Users.DeleteAll(ctx); err != nil {
+		log.Println("Error deleting users:", err)
+	}
+	log.Println("🗑️  All data erased from the database.")
 }
 
 func Seed(store store.Storage) {
+	EraseAll(store)
 	ctx := context.Background()
 
 	users := generateUsers(100)
@@ -116,6 +171,13 @@ func Seed(store store.Storage) {
 	for _, comment := range comments {
 		if err := store.Comments.Create(ctx, comment); err != nil {
 			log.Println("Error creating Comment: ", err.Error())
+			return
+		}
+	}
+	followers := generateFollowers(150, users) // e.g., 150 follow relationships
+	for _, f := range followers {
+		if err := store.Followers.Follow(ctx, f.FollowerId, f.UserId); err != nil {
+			log.Println("Error creating Follower: ", err.Error())
 			return
 		}
 	}
@@ -171,4 +233,28 @@ func generateComments(num int, users []*store.User, posts []*store.Post) []*stor
 	}
 
 	return randComments
+}
+
+func generateFollowers(num int, users []*store.User) []*store.Follower {
+	followers := make([]*store.Follower, 0, num)
+	userCount := len(users)
+	seen := make(map[string]struct{})
+
+	for len(followers) < num {
+		followerIdx := rand.Intn(userCount)
+		followedIdx := rand.Intn(userCount)
+		if followerIdx == followedIdx {
+			continue // no self-follow
+		}
+		key := fmt.Sprintf("%d-%d", users[followerIdx].ID, users[followedIdx].ID)
+		if _, exists := seen[key]; exists {
+			continue // no duplicate follows
+		}
+		seen[key] = struct{}{}
+		followers = append(followers, &store.Follower{
+			FollowerId: users[followerIdx].ID,
+			UserId:     users[followedIdx].ID,
+		})
+	}
+	return followers
 }
