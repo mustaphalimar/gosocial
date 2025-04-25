@@ -11,6 +11,23 @@ import (
 
 const version = "0.0.1"
 
+//	@title			Swagger Example API
+//	@description	Go-Social Docs
+//	@termsOfService	http://swagger.io/terms/
+
+//	@contact.name	API Support
+//	@contact.url	http://www.swagger.io/support
+//	@contact.email	support@swagger.io
+
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+
+//	@BasePath					/v1
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@in							header
+//	@name						Authorization
+//	@description
+
 func main() {
 	err := godotenv.Load()
 	if err != nil {
@@ -18,7 +35,8 @@ func main() {
 	}
 
 	cfg := config{
-		addr: env.GetString("ADDR", ":8080"),
+		addr:   env.GetString("ADDR", ":8080"),
+		apiURL: env.GetString("EXTERNAL_URL", "localhost:8080"),
 		db: dbConfig{
 			addr: env.GetString("DATABASE_URL", "postgresql://postgres:admin@localhost/gosocial?sslmode=disable"),
 			// limit number of open connection to the db from our API connection pool
