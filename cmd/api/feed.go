@@ -6,6 +6,22 @@ import (
 	"github.com/mustaphalimar/go-social/internal/store"
 )
 
+// getUserFeedHandler godoc
+//
+//	@Summary		Get user feed
+//	@Description	Retrieves a paginated, filtered, and sorted feed of posts for the user
+//	@Tags			feed
+//	@Accept			json
+//	@Produce		json
+//	@Param			limit	query		int		false	"Limit the number of posts"
+//	@Param			offset	query		int		false	"Offset for pagination"
+//	@Param			sort	query		string	false	"Sort order (asc or desc)"
+//	@Param			tags	query		string	false	"Tags"
+//	@Param			search	query		string	false	"Search"
+//	@Success		200		{array}		store.Post
+//	@Failure		400		{object}	error	"Invalid query parameters"
+//	@Failure		500		{object}	error	"Internal server error"
+//	@Router			/users/feed [get]
 func (app *application) getUserFeedHandler(w http.ResponseWriter, r *http.Request) {
 	// pagination, filters, sort
 	fq := store.PaginatedFeedQuery{
