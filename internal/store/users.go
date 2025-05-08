@@ -81,3 +81,7 @@ func (s *UserStore) GetById(ctx context.Context, userId int64) (*User, error) {
 
 	return user, nil
 }
+
+func (s *UserStore) CreateAndInvite(ctx context.Context, user *User, token string) error {
+	return nil
+}
