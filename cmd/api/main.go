@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/mustaphalimar/go-social/internal/db"
@@ -45,6 +46,9 @@ func main() {
 			maxIdleTime:  env.GetString("DB_MAX_IDLE_TIME", "15m"),
 		},
 		env: env.GetString("ENV", "development"),
+		mail: mailConfig{
+			exp: time.Hour * 24 * 3, // days
+		},
 	}
 	// Logger
 	logger := zap.Must(zap.NewProduction()).Sugar()

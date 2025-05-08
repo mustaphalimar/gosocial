@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -38,7 +39,8 @@ func (s *UserStore) DeleteAll(ctx context.Context) error {
 	_, err := s.db.ExecContext(ctx, "TRUNCATE TABLE users RESTART IDENTITY CASCADE")
 	return err
 }
-func (s *UserStore) Create(ctx context.Context, user *User) error {
+
+func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 	query := `
 		INSERT INTO users(username,email,password)
 		VALUES ($1,$2,$3)
@@ -53,7 +55,14 @@ func (s *UserStore) Create(ctx context.Context, user *User) error {
 	).Scan(&user.ID, &user.Email, &user.CreatedAt)
 
 	if err != nil {
-		return err
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
+			return ErrDuplicateEmail
+		case err.Error() == `pq: duplicate key value violates unique constraint "users_username_key"`:
+			return ErrDuplicateUsername
+		default:
+			return err
+		}
 	}
 	return nil
 }
@@ -82,6 +91,30 @@ func (s *UserStore) GetById(ctx context.Context, userId int64) (*User, error) {
 	return user, nil
 }
 
-func (s *UserStore) CreateAndInvite(ctx context.Context, user *User, token string) error {
+func (s *UserStore) CreateAndInvite(ctx context.Context, user *User, token string, expiresIn time.Duration) error {
+	return withTx(s.db, ctx, func(tx *sql.Tx) error {
+		// create the user
+		if err := s.Create(ctx, tx, user); err != nil {
+			return err
+		}
+
+		if err := s.createUserInvitation(ctx, tx, token, expiresIn, user.ID); err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (s *UserStore) createUserInvitation(ctx context.Context, tx *sql.Tx, token string, expiresIn time.Duration, userId int64) error {
+	query := `INSERT INTO user_invitaions (token, user_id, expiresIn) VALUES ($1,$2,$3)`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	_, err := tx.ExecContext(ctx, query, token, userId, time.Now().Add(expiresIn))
+	if err != nil {
+		return err
+	}
 	return nil
 }

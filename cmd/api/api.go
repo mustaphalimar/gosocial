@@ -19,6 +19,10 @@ type application struct {
 	logger *zap.SugaredLogger
 }
 
+type mailConfig struct {
+	exp time.Duration
+}
+
 type dbConfig struct {
 	addr         string
 	maxOpenConns int
@@ -31,6 +35,7 @@ type config struct {
 	db     dbConfig
 	env    string
 	apiURL string
+	mail   mailConfig
 }
 
 func (app *application) mount() http.Handler {

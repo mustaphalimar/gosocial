@@ -18,8 +18,8 @@ type Storage struct {
 	}
 	Users interface {
 		GetById(context.Context, int64) (*User, error)
-		Create(context.Context, *User) error
-		CreateAndInvite(ctx context.Context, user *User, token string) error
+		Create(context.Context, *sql.Tx, *User) error
+		CreateAndInvite(ctx context.Context, user *User, token string, expiresIn time.Duration) error
 		DeleteAll(context.Context) error
 	}
 	Comments interface {
@@ -37,6 +37,8 @@ var (
 	ErrorNotFound        = errors.New("Record not found.")
 	QueryTimeoutDuration = time.Second * 5
 	ErrConflict          = errors.New("Resource already exists")
+	ErrDuplicateEmail    = errors.New("Email already in use")
+	ErrDuplicateUsername = errors.New("Username already in use")
 )
 
 func NewStorage(db *sql.DB) Storage {
@@ -55,6 +57,7 @@ func withTx(db *sql.DB, ctx context.Context, fn func(*sql.Tx) error) error {
 	}
 
 	if err := fn(tx); err != nil {
+		_ = tx.Rollback()
 		return err
 	}
 
