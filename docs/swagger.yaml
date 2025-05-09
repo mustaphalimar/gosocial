@@ -107,7 +107,7 @@ info:
   termsOfService: http://swagger.io/terms/
   title: Swagger Example API
 paths:
-  /authentication/user:
+  /auth/register:
     post:
       consumes:
       - application/json
