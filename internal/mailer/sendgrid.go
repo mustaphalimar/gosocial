@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"text/template"
 	"time"
 
 	"github.com/sendgrid/sendgrid-go"
@@ -30,9 +31,22 @@ func (m *SendGridMaler) Send(templateFile, username, email string, data any, isS
 	to := mail.NewEmail(username, email)
 
 	// template parsing and building
-	//
+	tmpl, err := template.ParseFS(FS, "templates/"+templateFile)
+	if err != nil {
+		return err
+	}
+
 	subject := new(bytes.Buffer)
+	err = tmpl.ExecuteTemplate(subject, "subject", data)
+	if err != nil {
+		return err
+	}
+
 	body := new(bytes.Buffer)
+	err = tmpl.ExecuteTemplate(body, "body", data)
+	if err != nil {
+		return err
+	}
 
 	message := mail.NewSingleEmail(from, subject.String(), to, "", body.String())
 
