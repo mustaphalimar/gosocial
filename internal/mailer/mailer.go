@@ -5,7 +5,7 @@ import "embed"
 const (
 	FromName            = "GoSocial"
 	maxRetries          = 3
-	UserWelcomeTemplate = "user_invitation.tmpl"
+	UserWelcomeTemplate = "user_verification.tmpl"
 )
 
 // the line below ensures the template files will be embedded with the go binary at build time!

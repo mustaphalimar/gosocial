@@ -22,7 +22,9 @@ type application struct {
 }
 
 type mailConfig struct {
-	exp time.Duration
+	exp       time.Duration
+	apiKey    string
+	fromEmail string
 }
 
 type dbConfig struct {
@@ -33,11 +35,12 @@ type dbConfig struct {
 }
 
 type config struct {
-	addr   string
-	db     dbConfig
-	env    string
-	apiURL string
-	mail   mailConfig
+	addr      string
+	db        dbConfig
+	env       string
+	apiURL    string
+	mail      mailConfig
+	clientURL string
 }
 
 func (app *application) mount() http.Handler {

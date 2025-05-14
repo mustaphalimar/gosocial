@@ -7,6 +7,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/mustaphalimar/go-social/internal/db"
 	"github.com/mustaphalimar/go-social/internal/env"
+	"github.com/mustaphalimar/go-social/internal/mailer"
 	"github.com/mustaphalimar/go-social/internal/store"
 	"go.uber.org/zap"
 )
@@ -36,8 +37,9 @@ func main() {
 	}
 
 	cfg := config{
-		addr:   env.GetString("ADDR", ":8080"),
-		apiURL: env.GetString("EXTERNAL_URL", "localhost:8080"),
+		addr:      env.GetString("ADDR", ":8080"),
+		apiURL:    env.GetString("EXTERNAL_URL", "localhost:8080"),
+		clientURL: env.GetString("CLIENT_URL", "http://localhost:4000"),
 		db: dbConfig{
 			addr: env.GetString("DATABASE_URL", "postgresql://postgres:admin@localhost/gosocial?sslmode=disable"),
 			// limit number of open connection to the db from our API connection pool
@@ -47,7 +49,9 @@ func main() {
 		},
 		env: env.GetString("ENV", "development"),
 		mail: mailConfig{
-			exp: time.Hour * 24 * 3, // days
+			exp:       time.Hour * 24 * 3, // days
+			apiKey:    env.GetString("SENDGRID_API_KEY", ""),
+			fromEmail: env.GetString("FROM_EMAIL", ""),
 		},
 	}
 	// Logger
@@ -63,10 +67,14 @@ func main() {
 	logger.Info("Database connection pool established.")
 
 	store := store.NewStorage(db)
+
+	mailer := mailer.NewSendgrid(cfg.mail.apiKey, cfg.mail.fromEmail)
+
 	app := &application{
 		config: cfg,
 		store:  store,
 		logger: logger,
+		mailer: mailer,
 	}
 
 	mux := app.mount()

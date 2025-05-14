@@ -1,0 +1,15 @@
+{{define "plain"}}
+Hello {{.Username}},
+
+Thank you for signing up for Gosocial! To complete your registration and activate your account, please visit this link:
+
+{{.ActivationURL}}
+
+This verification link will expire in 24 hours. If you did not create an account with Gosocial, please ignore this email.
+
+Best regards,
+The Gosocial Team
+
+This is an automated message, please do not reply to this email.
+© 2025 Gosocial. All rights reserved.
+{{end}}
