@@ -71,8 +71,6 @@ func (m *SendGridMailer) Send(templateFile, username, email string, data any, is
 			log.Printf("Email sent successfully with status code %v", res.StatusCode)
 			return nil
 		}
-		response = res
-		resError = err
 
 		log.Printf("Email sent with error status code %v", res.StatusCode)
 
