@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"log"
 	"time"
 
 	"github.com/sendgrid/sendgrid-go"
@@ -26,26 +25,26 @@ func NewSendgrid(apiKey, fromEmail string) *SendGridMailer {
 	}
 }
 
-func (m *SendGridMailer) Send(templateFile, username, email string, data any, isSandbox bool) error {
+func (m *SendGridMailer) Send(templateFile, username, email string, data any, isSandbox bool) (int, error) {
 	from := mail.NewEmail(FromName, m.fromEmail)
 	to := mail.NewEmail(username, email)
 
 	// template parsing and building
 	tmpl, err := template.ParseFS(FS, "templates/"+templateFile)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	subject := new(bytes.Buffer)
 	err = tmpl.ExecuteTemplate(subject, "subject", data)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	body := new(bytes.Buffer)
 	err = tmpl.ExecuteTemplate(body, "body", data)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	message := mail.NewSingleEmail(from, subject.String(), to, "", body.String())
@@ -56,26 +55,17 @@ func (m *SendGridMailer) Send(templateFile, username, email string, data any, is
 		},
 	})
 
+	var retryErr error
 	for i := 0; i < maxRetries; i++ {
-		res, err := m.client.Send(message)
-		if err != nil {
-			log.Printf("Failed to send email to %v, attempt %d of %d", email, i+1, maxRetries)
-			log.Printf("Error: %v", err.Error())
+		res, retryErr := m.client.Send(message)
+		if retryErr != nil {
 			// exponential backoff
 			time.Sleep(time.Second * time.Duration(i+1))
 			continue
 		}
 
-		// Check for successful status code (2xx)
-		if res.StatusCode >= 200 && res.StatusCode < 300 {
-			log.Printf("Email sent successfully with status code %v", res.StatusCode)
-			return nil
-		}
-
-		log.Printf("Email sent with error status code %v", res.StatusCode)
-
-		time.Sleep(time.Second * time.Duration(i+1))
+		return res.StatusCode, nil
 	}
 
-	return fmt.Errorf("Failed to send email after %d attempts", maxRetries)
+	return 0, fmt.Errorf("Failed to send email after %d attempts, error: %v", maxRetries, retryErr)
 }
