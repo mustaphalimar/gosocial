@@ -39,7 +39,7 @@ func main() {
 	cfg := config{
 		addr:      env.GetString("ADDR", ":8080"),
 		apiURL:    env.GetString("EXTERNAL_URL", "localhost:8080"),
-		clientURL: env.GetString("CLIENT_URL", "http://localhost:4000"),
+		clientURL: env.GetString("CLIENT_URL", "http://localhost:5173"),
 		db: dbConfig{
 			addr: env.GetString("DATABASE_URL", "postgresql://postgres:admin@localhost/gosocial?sslmode=disable"),
 			// limit number of open connection to the db from our API connection pool
