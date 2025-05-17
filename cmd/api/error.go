@@ -33,8 +33,10 @@ func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request,
 	writeJSONError(w, http.StatusNotFound, "Resource not found.")
 }
 
-func (app *application) unauthorizedResponse(w http.ResponseWriter, r *http.Request, err error) {
-	var message = "UNAUTHORIZED_ERROR"
+func (app *application) unauthorizedBasicAuthResponse(w http.ResponseWriter, r *http.Request, err error) {
+	var message = "UNAUTHORIZED_BASIC_AUTH_ERROR"
 	app.logger.Errorw(message, "method", r.Method, "path", r.URL.Path, err)
+
+	w.Header().Set("WWW-Authenticate", `Basic realm="restriced", charset="UTF-8"`)
 	writeJSONError(w, http.StatusUnauthorized, "Unauthorized")
 }
