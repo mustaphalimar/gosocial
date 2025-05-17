@@ -32,7 +32,7 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
 
 	if err := app.jsonResponse(w, http.StatusOK, user); err != nil {
-		app.internalServerError(w, r, err)
+		app.internalServerResponse(w, r, err)
 	}
 }
 
@@ -59,14 +59,14 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		switch err {
 		case store.ErrorNotFound:
-			app.notFoundError(w, r, err)
+			app.notFoundResponse(w, r, err)
 		default:
-			app.internalServerError(w, r, err)
+			app.internalServerResponse(w, r, err)
 		}
 		return
 	}
 	if err := app.jsonResponse(w, http.StatusNoContent, ""); err != nil {
-		app.internalServerError(w, r, err)
+		app.internalServerResponse(w, r, err)
 	}
 }
 
@@ -89,7 +89,7 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 	// TODO: reverts back to userId from ctx when jwt auth is implemented
 	var payload FollowUser
 	if err := readJSON(w, r, &payload); err != nil {
-		app.badRequestError(w, r, err)
+		app.badRequestResponse(w, r, err)
 		return
 	}
 	ctx := r.Context()
@@ -97,16 +97,16 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 	if err := app.store.Followers.Follow(ctx, userToFollow.ID, payload.UserId); err != nil {
 		switch err {
 		case store.ErrConflict:
-			app.conflictError(w, r, err)
+			app.conflictResponse(w, r, err)
 			return
 		default:
-			app.internalServerError(w, r, err)
+			app.internalServerResponse(w, r, err)
 			return
 		}
 	}
 
 	if err := app.jsonResponse(w, http.StatusNoContent, nil); err != nil {
-		app.internalServerError(w, r, err)
+		app.internalServerResponse(w, r, err)
 		return
 	}
 }
@@ -131,16 +131,16 @@ func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Reque
 	// TODO: reverts back to auth userId from ctx when jwt auth is implemented
 	var payload FollowUser
 	if err := readJSON(w, r, &payload); err != nil {
-		app.badRequestError(w, r, err)
+		app.badRequestResponse(w, r, err)
 	}
 	ctx := r.Context()
 
 	if err := app.store.Followers.Unfollow(ctx, userToUnfollow.ID, payload.UserId); err != nil {
-		app.internalServerError(w, r, err)
+		app.internalServerResponse(w, r, err)
 		return
 	}
 	if err := app.jsonResponse(w, http.StatusNoContent, nil); err != nil {
-		app.internalServerError(w, r, err)
+		app.internalServerResponse(w, r, err)
 	}
 }
 
@@ -148,7 +148,7 @@ func (app *application) userContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId, err := strconv.ParseInt(chi.URLParam(r, "userId"), 10, 64)
 		if err != nil {
-			app.badRequestError(w, r, err)
+			app.badRequestResponse(w, r, err)
 			return
 		}
 
@@ -158,10 +158,10 @@ func (app *application) userContextMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			switch {
 			case errors.Is(err, store.ErrorNotFound):
-				app.notFoundError(w, r, err)
+				app.notFoundResponse(w, r, err)
 				return
 			default:
-				app.internalServerError(w, r, err)
+				app.internalServerResponse(w, r, err)
 				return
 			}
 		}

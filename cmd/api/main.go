@@ -53,6 +53,12 @@ func main() {
 			apiKey:    env.GetString("SENDGRID_API_KEY", ""),
 			fromEmail: env.GetString("FROM_EMAIL", ""),
 		},
+		auth: authConfig{
+			basic: basicConfig{
+				username: env.GetString("BASIC_AUTH_USERNAME", ""),
+				password: env.GetString("BASIC_AUTH_PASSWORD", ""),
+			},
+		},
 	}
 	// Logger
 	logger := zap.Must(zap.NewProduction()).Sugar()

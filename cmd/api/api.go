@@ -42,6 +42,16 @@ type config struct {
 	apiURL    string
 	mail      mailConfig
 	clientURL string
+	auth      authConfig
+}
+
+type authConfig struct {
+	basic basicConfig
+}
+
+type basicConfig struct {
+	username string
+	password string
 }
 
 func (app *application) mount() http.Handler {
@@ -62,13 +72,9 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Timeout(60 * time.Second))
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("welcome"))
-	})
-
 	// routers
 	r.Route("/v1", func(r chi.Router) {
-		r.Get("/health", app.healthCheckHandler)
+		r.With(app.BasicAuthMiddleware()).Get("/health", app.healthCheckHandler)
 
 		// Swagger Doc http://localhost:8080/swagger/doc.json
 		docsUrl := fmt.Sprintf("%s/swagger/doc.json", app.config.addr)

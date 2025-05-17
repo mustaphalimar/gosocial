@@ -37,12 +37,12 @@ type UserWithToken struct {
 func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
 	var payload RegisterUserPayload
 	if err := readJSON(w, r, &payload); err != nil {
-		app.badRequestError(w, r, err)
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
 	if err := Validate.Struct(payload); err != nil {
-		app.badRequestError(w, r, err)
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
@@ -52,7 +52,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	}
 	// hash the password
 	if err := user.Password.Set(payload.Password); err != nil {
-		app.internalServerError(w, r, err)
+		app.internalServerResponse(w, r, err)
 		return
 	}
 
@@ -70,11 +70,11 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		switch err {
 		case store.ErrDuplicateEmail:
-			app.conflictError(w, r, err)
+			app.conflictResponse(w, r, err)
 		case store.ErrDuplicateUsername:
-			app.conflictError(w, r, err)
+			app.conflictResponse(w, r, err)
 		default:
-			app.internalServerError(w, r, err)
+			app.internalServerResponse(w, r, err)
 		}
 		return
 	}
@@ -104,12 +104,12 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 			app.logger.Errorw("Error while deleting user", "error", err)
 		}
 
-		app.internalServerError(w, r, err)
+		app.internalServerResponse(w, r, err)
 		return
 	}
 	app.logger.Infow("Email sent", "Status Code", status)
 
 	if err := app.jsonResponse(w, http.StatusCreated, userWithToken); err != nil {
-		app.internalServerError(w, r, err)
+		app.internalServerResponse(w, r, err)
 	}
 }

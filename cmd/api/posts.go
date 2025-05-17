@@ -35,12 +35,12 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	var postPayload CreatePostPayload
 
 	if err := readJSON(w, r, &postPayload); err != nil {
-		app.badRequestError(w, r, err)
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
 	if err := Validate.Struct(postPayload); err != nil {
-		app.badRequestError(w, r, err)
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
@@ -54,12 +54,12 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	ctx := r.Context()
 
 	if err := app.store.Posts.Create(ctx, post); err != nil {
-		app.internalServerError(w, r, err)
+		app.internalServerResponse(w, r, err)
 		return
 	}
 
 	if err := app.jsonResponse(w, http.StatusCreated, post); err != nil {
-		app.internalServerError(w, r, err)
+		app.internalServerResponse(w, r, err)
 		return
 	}
 }
@@ -80,14 +80,14 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	comments, err := app.store.Comments.GetByPostId(r.Context(), post.ID)
 	if err != nil {
-		app.internalServerError(w, r, err)
+		app.internalServerResponse(w, r, err)
 		return
 	}
 
 	post.Comments = comments
 
 	if err := app.jsonResponse(w, http.StatusOK, post); err != nil {
-		app.internalServerError(w, r, err)
+		app.internalServerResponse(w, r, err)
 	}
 }
 
@@ -114,12 +114,12 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 
 	var payload UpdatePostPayload
 	if err := readJSON(w, r, &payload); err != nil {
-		app.badRequestError(w, r, err)
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
 	if err := Validate.Struct(payload); err != nil {
-		app.badRequestError(w, r, err)
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
@@ -134,12 +134,12 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 	err := app.store.Posts.Update(r.Context(), post)
 	if err != nil {
 
-		app.internalServerError(w, r, err)
+		app.internalServerResponse(w, r, err)
 		return
 	}
 
 	if err = app.jsonResponse(w, http.StatusOK, post); err != nil {
-		app.internalServerError(w, r, err)
+		app.internalServerResponse(w, r, err)
 		return
 	}
 }
@@ -161,7 +161,7 @@ func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request
 	idParam := chi.URLParam(r, "postId")
 	postId, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil {
-		app.badRequestError(w, r, err)
+		app.badRequestResponse(w, r, err)
 		return
 	}
 	ctx := r.Context()
@@ -169,9 +169,9 @@ func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request
 	if err := app.store.Posts.Delete(ctx, postId); err != nil {
 		switch {
 		case errors.Is(err, store.ErrorNotFound):
-			app.notFoundError(w, r, err)
+			app.notFoundResponse(w, r, err)
 		default:
-			app.internalServerError(w, r, err)
+			app.internalServerResponse(w, r, err)
 		}
 		return
 	}
@@ -184,7 +184,7 @@ func (app *application) postsContextMiddleware(next http.Handler) http.Handler {
 		idParam := chi.URLParam(r, "postId")
 		postId, err := strconv.ParseInt(idParam, 10, 64)
 		if err != nil {
-			app.badRequestError(w, r, err)
+			app.badRequestResponse(w, r, err)
 			return
 		}
 		ctx := r.Context()
@@ -193,9 +193,9 @@ func (app *application) postsContextMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			switch {
 			case errors.Is(err, store.ErrorNotFound):
-				app.notFoundError(w, r, err)
+				app.notFoundResponse(w, r, err)
 			default:
-				app.internalServerError(w, r, err)
+				app.internalServerResponse(w, r, err)
 			}
 			return
 		}
