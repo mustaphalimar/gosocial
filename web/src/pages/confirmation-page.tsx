@@ -13,7 +13,7 @@ export default function ConfirmationPage() {
     });
 
     if (response.ok) {
-      // redirect to the / page
+      // redirect home
       redirect("/");
     } else {
       alert("Failed to confirm");
