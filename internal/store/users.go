@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
+	"fmt"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -81,6 +82,31 @@ func (s *UserStore) GetById(ctx context.Context, userId int64) (*User, error) {
 	err := s.db.QueryRowContext(ctx, query,
 		userId,
 	).Scan(&user.ID, &user.Username, &user.Email, &user.CreatedAt)
+
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			return nil, ErrorNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return user, nil
+}
+
+func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error) {
+	query := `
+		SELECT id,username,email,password,created_at FROM users WHERE email = $1 AND is_active = true;
+	`
+	fmt.Println(query)
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	user := &User{}
+	err := s.db.QueryRowContext(ctx, query,
+		email,
+	).Scan(&user.ID, &user.Username, &user.Email, &user.Password.hash, &user.CreatedAt)
 
 	if err != nil {
 		switch err {

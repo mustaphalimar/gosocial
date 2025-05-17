@@ -8,8 +8,8 @@ type JWTAuthenticator struct {
 	iss    string
 }
 
-func NewJWTAuthenticator(secret, aud, iss string) JWTAuthenticator {
-	return JWTAuthenticator{
+func NewJWTAuthenticator(secret, aud, iss string) *JWTAuthenticator {
+	return &JWTAuthenticator{
 		secret,
 		aud,
 		iss,

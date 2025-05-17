@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/mustaphalimar/go-social/internal/auth"
 	"github.com/mustaphalimar/go-social/internal/db"
 	"github.com/mustaphalimar/go-social/internal/env"
 	"github.com/mustaphalimar/go-social/internal/mailer"
@@ -58,6 +59,11 @@ func main() {
 				username: env.GetString("BASIC_AUTH_USERNAME", ""),
 				password: env.GetString("BASIC_AUTH_PASSWORD", ""),
 			},
+			jwt: jwtConfig{
+				secret: env.GetString("JWT_SECRET", ""),
+				exp:    time.Hour * 24 * 3, // days
+				iss:    "go-social",
+			},
 		},
 	}
 	// Logger
@@ -76,11 +82,14 @@ func main() {
 
 	mailer := mailer.NewSendgrid(cfg.mail.apiKey, cfg.mail.fromEmail)
 
+	jwtAuthenticator := auth.NewJWTAuthenticator(cfg.auth.jwt.secret, cfg.auth.jwt.iss, cfg.auth.jwt.iss)
+
 	app := &application{
-		config: cfg,
-		store:  store,
-		logger: logger,
-		mailer: mailer,
+		config:        cfg,
+		store:         store,
+		logger:        logger,
+		mailer:        mailer,
+		authenticator: jwtAuthenticator,
 	}
 
 	mux := app.mount()
