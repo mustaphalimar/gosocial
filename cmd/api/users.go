@@ -144,7 +144,7 @@ func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Reque
 	}
 }
 
-func (app *application) userContextMiddleware(next http.Handler) http.Handler {
+func (app *application) userParamContextMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userId, err := strconv.ParseInt(chi.URLParam(r, "userId"), 10, 64)
 		if err != nil {

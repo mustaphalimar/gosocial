@@ -73,7 +73,7 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 
 func (s *UserStore) GetById(ctx context.Context, userId int64) (*User, error) {
 	query := `
-		SELECT id,username,email,created_at FROM users WHERE id = $1;
+		SELECT id,username,email,password,created_at FROM users WHERE id = $1;
 	`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
@@ -81,7 +81,7 @@ func (s *UserStore) GetById(ctx context.Context, userId int64) (*User, error) {
 	user := &User{}
 	err := s.db.QueryRowContext(ctx, query,
 		userId,
-	).Scan(&user.ID, &user.Username, &user.Email, &user.CreatedAt)
+	).Scan(&user.ID, &user.Username, &user.Email, &user.Password.hash, &user.CreatedAt)
 
 	if err != nil {
 		switch err {
