@@ -194,10 +194,30 @@ func generateUsers(num int) []*store.User {
 	users := make([]*store.User, num)
 
 	for i := range num {
-		users[i] = &store.User{
-			Username: names[rand.Intn(len(names))] + fmt.Sprintf("%d", i),
-			Email:    names[rand.Intn(len(names))] + fmt.Sprintf("%d", i) + "@example.com",
-			RoleID:   1,
+		if i < 30 {
+			users[i] = &store.User{
+				Username: names[rand.Intn(len(names))] + fmt.Sprintf("%d", i),
+				Email:    names[rand.Intn(len(names))] + fmt.Sprintf("%d", i) + "@example.com",
+				Role: store.Role{
+					Name: "user",
+				},
+			}
+		} else if i < 60 {
+			users[i] = &store.User{
+				Username: names[rand.Intn(len(names))] + fmt.Sprintf("%d", i),
+				Email:    names[rand.Intn(len(names))] + fmt.Sprintf("%d", i) + "@example.com",
+				Role: store.Role{
+					Name: "moderator",
+				},
+			}
+		} else {
+			users[i] = &store.User{
+				Username: names[rand.Intn(len(names))] + fmt.Sprintf("%d", i),
+				Email:    names[rand.Intn(len(names))] + fmt.Sprintf("%d", i) + "@example.com",
+				Role: store.Role{
+					Name: "admin",
+				},
+			}
 		}
 	}
 

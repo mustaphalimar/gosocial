@@ -48,8 +48,8 @@ func (s *UserStore) DeleteAll(ctx context.Context) error {
 func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 	query := `
 		INSERT INTO users(username,email,password,role_id)
-		VALUES ($1,$2,$3,$4)
-		RETURNING id,email,created_at,role
+		VALUES ($1,$2,$3,(SELECT id FROM roles WHERE name = $4))
+		RETURNING id,email,created_at,role_id
 	`
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
@@ -57,7 +57,7 @@ func (s *UserStore) Create(ctx context.Context, tx *sql.Tx, user *User) error {
 		user.Username,
 		user.Email,
 		user.Password.hash,
-		user.RoleID,
+		user.Role.Name,
 	).Scan(&user.ID, &user.Email, &user.CreatedAt, &user.RoleID)
 
 	if err != nil {
