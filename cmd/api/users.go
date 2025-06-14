@@ -83,18 +83,18 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 //	@Security		ApiKeyAuth
 //	@Router			/users/{userID}/follow [put]
 func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
-	// extracting the user from the params, /users/{userId}/follow
-	userToFollow := getUserFromContext(r)
-
-	// TODO: reverts back to userId from ctx when jwt auth is implemented
-	var payload FollowUser
-	if err := readJSON(w, r, &payload); err != nil {
+	// getting the authenticated user from the context
+	followerUser := getUserFromContext(r)
+	// extracting the user to follow from the params, /users/{userId}/follow
+	followedUserId, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
+	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
 	}
+
 	ctx := r.Context()
 
-	if err := app.store.Followers.Follow(ctx, userToFollow.ID, payload.UserId); err != nil {
+	if err := app.store.Followers.Follow(ctx, followerUser.ID, followedUserId); err != nil {
 		switch err {
 		case store.ErrConflict:
 			app.conflictResponse(w, r, err)
@@ -125,17 +125,17 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 //	@Security		ApiKeyAuth
 //	@Router			/users/{userID}/unfollow [put]
 func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Request) {
-	// extracting the user from the params, /users/{userId}/follow
-	userToUnfollow := getUserFromContext(r)
-
-	// TODO: reverts back to auth userId from ctx when jwt auth is implemented
-	var payload FollowUser
-	if err := readJSON(w, r, &payload); err != nil {
+	// getting the authenticated user from the context
+	followerUser := getUserFromContext(r)
+	// extracting the user to unfollow from the params, /users/{userId}/follow
+	unfollowedUserId, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
+	if err != nil {
 		app.badRequestResponse(w, r, err)
+		return
 	}
 	ctx := r.Context()
 
-	if err := app.store.Followers.Unfollow(ctx, userToUnfollow.ID, payload.UserId); err != nil {
+	if err := app.store.Followers.Unfollow(ctx, followerUser.ID, unfollowedUserId); err != nil {
 		app.internalServerResponse(w, r, err)
 		return
 	}
