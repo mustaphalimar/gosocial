@@ -27,6 +27,12 @@ func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Reques
 	writeJSONError(w, http.StatusBadRequest, err.Error())
 }
 
+func (app *application) forbiddenResponse(w http.ResponseWriter, r *http.Request) {
+	var message = "FORBIDDEN_ERROR"
+	app.logger.Warnf(message, "method", r.Method, "path", r.URL.Path)
+	writeJSONError(w, http.StatusForbidden, "This action is forbidden")
+}
+
 func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request, err error) {
 	var message = "NOT_FOUND_ERROR"
 	app.logger.Warnf(message, "method", r.Method, "path", r.URL.Path, err)

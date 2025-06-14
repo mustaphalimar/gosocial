@@ -101,9 +101,12 @@ func (app *application) mount() http.Handler {
 			r.Route("/{postId}", func(r chi.Router) {
 				r.Use(app.postsContextMiddleware) // fetches the post and add it to the context of the request
 
-				r.Get("/", app.getPostHandler)       // POST v1/posts/someId
-				r.Patch("/", app.updatePostHandler)  // PATCH v1/posts/someId
-				r.Delete("/", app.deletePostHandler) // DELETE v1/posts/someId
+				// POST v1/posts/someId
+				r.Get("/", app.getPostHandler)
+				// PATCH v1/posts/someId
+				r.Patch("/", app.checkPostsOwnership("moderator", app.updatePostHandler))
+				// DELETE v1/posts/someId
+				r.Delete("/", app.checkPostsOwnership("admin", app.deletePostHandler))
 			})
 
 		})

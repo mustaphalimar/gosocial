@@ -146,12 +146,13 @@ func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Reques
 		app.badRequestResponse(w, r, err)
 		return
 	}
+
 	// fetch the user (check if the user exists) from the payload
 	user, err := app.store.Users.GetByEmail(r.Context(), payload.Email)
 	if err != nil {
 		switch err {
 		case store.ErrorNotFound:
-			app.unauthorizedBasicAuthResponse(w, r, err)
+			app.notFoundResponse(w, r, err)
 		default:
 			app.internalServerResponse(w, r, err)
 		}

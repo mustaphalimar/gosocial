@@ -109,7 +109,7 @@ type UpdatePostPayload struct {
 //	@Success		200		{object}	store.Post
 //	@Failure		400		{object}	error	"Invalid input"
 //	@Failure		500		{object}	error	"Internal server error"
-//	@Router			/posts/{id} [put]
+//	@Router			/posts/{id} [patch]
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
 
